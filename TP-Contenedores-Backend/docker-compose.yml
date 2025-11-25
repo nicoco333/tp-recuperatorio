@@ -8,14 +8,12 @@ services:
     environment:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin123
-      - KC_HOSTNAME_URL=http://keycloak:8080
-
+      # IMPORTANTE: Esto debe ser localhost para que tu navegador pueda acceder
+      - KC_HOSTNAME_URL=http://localhost:8081
     volumes:
       - keycloak_data:/opt/keycloak/data
     networks:
       - tp-network
-
-
 
   db:
     image: postgres:16
@@ -54,6 +52,9 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: admin
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      # Configuración Híbrida de Seguridad
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8081/realms/tpi-backend
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/tpi-backend/protocol/openid-connect/certs
     ports:
       - "8085:8080"
     expose:
@@ -76,7 +77,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: admin
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SERVER_PORT: 8080
-
+      # Configuración Híbrida de Seguridad
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8081/realms/tpi-backend
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/tpi-backend/protocol/openid-connect/certs
     ports:
       - "8082:8080"
     expose:
@@ -98,6 +101,9 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: admin
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      # Configuración Híbrida de Seguridad
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8081/realms/tpi-backend
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/tpi-backend/protocol/openid-connect/certs
     ports:
       - "8083:8080"
     expose:
@@ -122,7 +128,9 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8080/realms/tpi-backend
+      # El Gateway también necesita la configuración híbrida para validar el token antes de redirigir
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://localhost:8081/realms/tpi-backend
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/tpi-backend/protocol/openid-connect/certs
     networks:
       - tp-network
 
