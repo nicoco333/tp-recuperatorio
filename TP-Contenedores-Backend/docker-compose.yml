@@ -1,0 +1,135 @@
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.3
+    container_name: keycloak
+    command: start-dev
+    ports:
+      - "8081:8080"
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin123
+      - KC_HOSTNAME_URL=http://keycloak:8080
+
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    networks:
+      - tp-network
+
+
+
+  db:
+    image: postgres:16
+    container_name: postgres-db-contenedores
+    restart: always
+    environment:
+      POSTGRES_DB: tp_contenedores
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - tp-network
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ms-flota:
+    build:
+      context: ./ms-flota
+      dockerfile: Dockerfile
+    container_name: ms-flota
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/tp_contenedores
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8085:8080"
+    expose:
+      - "8080"
+    networks:
+      - tp-network
+
+  ms-rutas:
+    build:
+      context: ./ms-rutas
+      dockerfile: Dockerfile
+    container_name: ms-rutas
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/tp_contenedores
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SERVER_PORT: 8080
+
+    ports:
+      - "8082:8080"
+    expose:
+      - "8080"
+    networks:
+      - tp-network
+
+  ms-solicitudes:
+    build:
+      context: ./ms-solicitudes
+      dockerfile: Dockerfile
+    container_name: ms-solicitudes
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/tp_contenedores
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8083:8080"
+    expose:
+      - "8080"
+    networks:
+      - tp-network
+
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    container_name: api-gateway
+    restart: unless-stopped
+    depends_on:
+      ms-flota:
+        condition: service_started
+      ms-rutas:
+        condition: service_started
+      ms-solicitudes:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8080/realms/tpi-backend
+    networks:
+      - tp-network
+
+volumes:
+  postgres_data:
+  keycloak_data:
+
+networks:
+  tp-network:
+    driver: bridge

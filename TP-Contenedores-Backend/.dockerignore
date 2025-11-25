@@ -1,0 +1,14 @@
+# Ignorar carpetas de compilación de Maven
+**/target
+
+# Ignorar configuraciones de IDE
+.idea/
+*.iml
+
+# Ignorar archivos de Git
+.git
+.gitignore
+
+# Ignorar logs locales y archivos de configuración de Docker
+docker-compose.log
+.docker/
