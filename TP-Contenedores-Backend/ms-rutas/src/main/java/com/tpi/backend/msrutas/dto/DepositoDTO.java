@@ -10,4 +10,5 @@ public class DepositoDTO {
     private Float latitud;
     private Float longitud;
     private String tipo; // central, intermedio, destino
+    private Float costoEstadiaDiaria;
 }

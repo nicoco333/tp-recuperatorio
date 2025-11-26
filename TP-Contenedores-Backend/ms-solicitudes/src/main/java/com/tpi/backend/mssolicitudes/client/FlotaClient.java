@@ -2,6 +2,12 @@ package com.tpi.backend.mssolicitudes.client;
 
 import com.tpi.backend.mssolicitudes.dto.CamionFlotaDTO;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -18,6 +24,18 @@ public class FlotaClient {
         this.flotaBaseUrl = flotaBaseUrl;
     }
 
+    // Helper para obtener headers con token
+    private HttpEntity<Void> getRequestEntity() {
+        String token = "";
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken jwtAuth) {
+            token = jwtAuth.getToken().getTokenValue();
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        return new HttpEntity<>(headers);
+    }
+
     public Double calcularCosto(String tipoContenedor, double distanciaKm, double pesoKg) {
         String url = UriComponentsBuilder
                 .fromHttpUrl(flotaBaseUrl + "/tarifas/calcular")
@@ -26,12 +44,18 @@ public class FlotaClient {
                 .queryParam("peso", pesoKg)
                 .toUriString();
 
-        return restTemplate.getForObject(url, Double.class);
+        ResponseEntity<Double> response = restTemplate.exchange(
+                url, HttpMethod.GET, getRequestEntity(), Double.class
+        );
+        return response.getBody();
     }
 
     public CamionFlotaDTO obtenerCamionPorDominio(String dominio) {
-        // asumiendo que en ms-flota tengas algo como GET /camiones/{dominio}
         String url = flotaBaseUrl + "/camiones/" + dominio;
-        return restTemplate.getForObject(url, CamionFlotaDTO.class);
+        
+        ResponseEntity<CamionFlotaDTO> response = restTemplate.exchange(
+                url, HttpMethod.GET, getRequestEntity(), CamionFlotaDTO.class
+        );
+        return response.getBody();
     }
 }

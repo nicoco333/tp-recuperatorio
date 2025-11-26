@@ -462,6 +462,12 @@ public class RutaService {
             throw new IllegalArgumentException("El nombre del depósito es obligatorio.");
         }
 
+        // --- CORRECCIÓN: Guardar Geo primero ---
+    if (deposito.getGeolocalizacion() != null && deposito.getGeolocalizacion().getIdGeo() == null) {
+        geolocalizacionRepository.save(deposito.getGeolocalizacion());
+    }
+    // ---------------------------------------
+    
         return depositoRepository.save(deposito);
     }
 }

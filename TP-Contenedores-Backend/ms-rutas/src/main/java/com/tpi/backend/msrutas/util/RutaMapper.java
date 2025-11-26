@@ -138,6 +138,7 @@ public class RutaMapper {
         Deposito e = new Deposito();
         if (dto.getIdDeposito() != null) e.setIdDeposito(dto.getIdDeposito().longValue());
         e.setNombre(dto.getNombre());
+        e.setCostoEstadiaDiaria(dto.getCostoEstadiaDiaria());
         if (dto.getDireccion() != null || dto.getLatitud() != null || dto.getLongitud() != null) {
             Geolocalizacion g = new Geolocalizacion();
             g.setDireccion(dto.getDireccion());
