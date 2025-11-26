@@ -11,7 +11,6 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-
 public class SecurityConfig {
 
     @Bean
@@ -31,8 +30,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/tramos/*/fin")
                         .hasAnyRole("OPERADOR", "TRANSPORTISTA")
 
-                        // OPERADOR y TRANSPORTISTA pueden consultar toda la información de rutas.
-                        .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("OPERADOR", "TRANSPORTISTA")
+                        // Permisos de LECTURA (GET)
+                        // Se agrega "CLIENTE" para que pueda consultar distancias (vía ms-solicitudes) y ver sus rutas.
+                        .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("OPERADOR", "TRANSPORTISTA", "CLIENTE")
 
                         .anyRequest().authenticated()
                 )

@@ -1,6 +1,6 @@
 package com.tpi.backend.msrutas.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException; // <-- Nuevo Importe
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tpi.backend.msrutas.dto.geolocalizacion.DistanciaDTO;
@@ -21,64 +21,50 @@ public class GeoService {
     private final RestClient.Builder builder;
 
     public DistanciaDTO calcularDistancia (String origen, String destino) throws Exception {
+        // Usamos la URL base de Google Maps
         RestClient client = builder.baseUrl("https://maps.googleapis.com/maps/api").build();
-        ResponseEntity<String> response;
+
         String url = "/distancematrix/json?origins=" + origen +
                 "&destinations=" + destino +
                 "&units=metric&key=" + apiKey;
 
+        ResponseEntity<String> response;
         try {
-            // 1. Llama a la API externa. Si falla la conexión, salta al primer catch.
             response = client.get().uri(url).retrieve().toEntity(String.class);
         } catch (RestClientException e) {
-            // DIAGNÓSTICO HTTP/CONEXIÓN
             System.err.println("ERROR HTTP: Fallo de comunicación con la API de Google Maps.");
-            e.printStackTrace();
-            throw new Exception("Error de comunicación con Google Maps (revisar clave o permisos)", e);
+            throw new Exception("Error de comunicación con Google Maps", e);
         }
 
-        // Si la llamada fue exitosa (código 200 OK):
         try {
-            // 2. Intenta parsear la respuesta JSON. Esto puede fallar si el cuerpo es nulo o no es JSON.
             ObjectMapper mapper = new ObjectMapper();
-
-            // Loguear el cuerpo antes de parsear para el diagnóstico
-            System.out.println("Body de respuesta de Google Maps: " + response.getBody());
-
             JsonNode root = mapper.readTree(response.getBody());
 
-            // 3. Verificación de errores de negocio de Google Maps (status != OK)
+            // Validamos que Google haya respondido OK a nivel general
             if (!"OK".equals(root.path("status").asText())) {
-                String status = root.path("status").asText();
-                String errorMessage = root.path("error_message").asText();
-                throw new Exception("Error de Google Maps (Status: " + status + "): " + errorMessage);
+                throw new Exception("Error de Google Maps: " + root.path("error_message").asText());
             }
 
-            // Verificación de estructura mínima (para evitar NullPointerException)
-            if (!root.path("rows").get(0).path("elements").get(0).has("distance")) {
-                throw new Exception("Respuesta de Google Maps válida, pero sin datos de distancia.");
+            // Validamos que haya encontrado una ruta (evitar el NOT_FOUND de la vez pasada)
+            JsonNode element = root.path("rows").get(0).path("elements").get(0);
+            if (!"OK".equals(element.path("status").asText())) {
+                 // Si Google no encuentra la calle, lanzamos error o devolvemos 0
+                 throw new Exception("Google Maps no encontró ruta entre: " + origen + " y " + destino);
             }
-
-            JsonNode leg = root.path("rows").get(0).path("elements").get(0);
 
             DistanciaDTO dto = new DistanciaDTO();
             dto.setOrigen(origen);
             dto.setDestino(destino);
-            dto.setKilometros(leg.path("distance").path("value").asDouble() / 1000);
-            dto.setDuracionTexto(leg.path("duration").path("text").asText());
-            long duracionSegundos = leg.path("duration").path("value").asLong();
-            long duracionMinutos = duracionSegundos / 60;
-            dto.setDuracionMinutos(duracionMinutos);
+
+            // Extraemos los valores reales
+            dto.setKilometros(element.path("distance").path("value").asDouble() / 1000);
+            dto.setDuracionTexto(element.path("duration").path("text").asText());
+
+            long duracionSegundos = element.path("duration").path("value").asLong();
+            dto.setDuracionMinutos(duracionSegundos / 60);
 
             return dto;
-        } catch (JsonProcessingException e) {
-            // DIAGNÓSTICO PARSEO JSON
-            System.err.println("ERROR JSON: Fallo al parsear la respuesta JSON de Google Maps.");
-            System.err.println("Cuerpo Recibido: " + response.getBody());
-            e.printStackTrace();
-            throw new Exception("Error de procesamiento de la respuesta JSON", e);
         } catch (Exception e) {
-            System.err.println("ERROR LÓGICA: Fallo al procesar el JSON válido.");
             e.printStackTrace();
             throw e;
         }
