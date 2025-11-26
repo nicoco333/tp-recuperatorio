@@ -163,6 +163,24 @@ public class SolicitudService {
         if (contenedor.getVolumenM3() == null || contenedor.getVolumenM3() <= 0) {
             throw new IllegalArgumentException("El volumen (m3) debe ser mayor que 0");
         }
+
+       
+        if (contenedor.getCliente() != null && contenedor.getCliente().getDniCliente() != null) {
+            Integer dni = contenedor.getCliente().getDniCliente();
+            Cliente clienteExistente = clienteRepository.findById(dni)
+                    .orElseThrow(() -> new EntityNotFoundException("No existe cliente con DNI " + dni));
+            contenedor.setCliente(clienteExistente); // Asignamos la entidad gestionada (existente)
+        } else {
+             throw new IllegalArgumentException("El contenedor debe tener un cliente asociado.");
+        }
+        // ----------------------------------------------
+        if (contenedor.getEstado() != null && contenedor.getEstado().getIdEstado() != null) {
+             Integer idEstado = contenedor.getEstado().getIdEstado();
+             Estado estadoExistente = estadoRepository.findById(idEstado)
+                    .orElseThrow(() -> new EntityNotFoundException("No existe estado con ID " + idEstado));
+             contenedor.setEstado(estadoExistente);
+        }
+
         return contenedorRepository.save(contenedor);
     }
 
