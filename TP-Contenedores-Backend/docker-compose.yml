@@ -8,7 +8,6 @@ services:
     environment:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin123
-      # IMPORTANTE: Esto debe ser localhost para que tu navegador pueda acceder
       - KC_HOSTNAME_URL=http://localhost:8081
     volumes:
       - keycloak_data:/opt/keycloak/data
@@ -38,11 +37,26 @@ services:
       timeout: 5s
       retries: 5
 
-  ms-flota:
+  osrm:
+    # Usamos la imagen de Docker Hub (v5.26.0 implícita) compatible con tus datos
+    image: osrm/osrm-backend:latest
+    container_name: osrm
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./osrm-data:/data
+    # Asegúrate de que este nombre coincida con el archivo que generaste en tu carpeta osrm-data
+    command: osrm-routed /data/argentina-251129.osrm
+    networks:
+      - tp-network
+
+  # MS-TRANSPORTE (ex ms-flota)
+  ms-transporte:
     build:
-      context: ./ms-flota
-      dockerfile: Dockerfile
-    container_name: ms-flota
+      context: .
+      dockerfile: ms-transporte/Dockerfile
+    container_name: ms-transporte
     restart: unless-stopped
     depends_on:
       db:
@@ -52,9 +66,11 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: admin
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      # Configuración Híbrida de Seguridad
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8081/realms/tpi-backend
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/tpi-backend/protocol/openid-connect/certs
+      # URLs de conexión
+      MS_SOLICITUDES_URL: http://ms-solicitudes:8080
+      MS_GEOLOCALIZACION_URL: http://ms-geolocalizacion:8080
     ports:
       - "8085:8080"
     expose:
@@ -62,24 +78,30 @@ services:
     networks:
       - tp-network
 
-  ms-rutas:
+  # MS-GEOLOCALIZACION (ex ms-rutas)
+  ms-geolocalizacion:
     build:
-      context: ./ms-rutas
-      dockerfile: Dockerfile
-    container_name: ms-rutas
+      context: .
+      dockerfile: ms-geolocalizacion/Dockerfile
+    container_name: ms-geolocalizacion
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
+      osrm:
+        condition: service_started
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/tp_contenedores
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: admin
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SERVER_PORT: 8080
-      # Configuración Híbrida de Seguridad
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8081/realms/tpi-backend
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/tpi-backend/protocol/openid-connect/certs
+      # URLs de conexión
+      MS_TRANSPORTE_URL: http://ms-transporte:8080
+      MS_SOLICITUDES_URL: http://ms-solicitudes:8080
+      OSRM_API_URL: http://osrm:5000
     ports:
       - "8082:8080"
     expose:
@@ -87,10 +109,11 @@ services:
     networks:
       - tp-network
 
+  # MS-SOLICITUDES (ex ms-seguimiento/solicitudes)
   ms-solicitudes:
     build:
-      context: ./ms-solicitudes
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ms-solicitudes/Dockerfile
     container_name: ms-solicitudes
     restart: unless-stopped
     depends_on:
@@ -101,9 +124,11 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: admin
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      # Configuración Híbrida de Seguridad
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8081/realms/tpi-backend
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/tpi-backend/protocol/openid-connect/certs
+      # URLs de conexión
+      MS_TRANSPORTE_URL: http://ms-transporte:8080
+      MS_GEOLOCALIZACION_URL: http://ms-geolocalizacion:8080
     ports:
       - "8083:8080"
     expose:
@@ -118,9 +143,9 @@ services:
     container_name: api-gateway
     restart: unless-stopped
     depends_on:
-      ms-flota:
+      ms-transporte:
         condition: service_started
-      ms-rutas:
+      ms-geolocalizacion:
         condition: service_started
       ms-solicitudes:
         condition: service_started
@@ -128,9 +153,12 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      # El Gateway también necesita la configuración híbrida para validar el token antes de redirigir
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://localhost:8081/realms/tpi-backend
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/tpi-backend/protocol/openid-connect/certs
+      # URLs para el enrutamiento del gateway (coinciden con RouteConfig.java)
+      - URI_SOLICITUDES=http://ms-solicitudes:8080
+      - URI_GEOLOCALIZACION=http://ms-geolocalizacion:8080
+      - URI_TRANSPORTE=http://ms-transporte:8080
     networks:
       - tp-network
 

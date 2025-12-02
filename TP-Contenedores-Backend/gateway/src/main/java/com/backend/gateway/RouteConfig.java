@@ -9,22 +9,17 @@ import org.springframework.context.annotation.Configuration;
 public class RouteConfig {
 
     @Bean
-    public RouteLocator customRoutes(RouteLocatorBuilder builder) {
+    public RouteLocator configurarEnrutamiento(RouteLocatorBuilder builder) {
         return builder.routes()
-                // Ruta para el microservicio de solicitudes
-                .route("solicitudes", r -> r.path("/api/solicitudes/**")
+                .route("route_pedidos", p -> p.path("/api/solicitudes/**")
                         .filters(f -> f.stripPrefix(2))
                         .uri("http://ms-solicitudes:8080"))
-
-                // Ruta para el microservicio de rutas
-                .route("rutas", r -> r.path("/api/rutas/**")
+                .route("route_geo", p -> p.path("/api/geolocalizacion/**")
                         .filters(f -> f.stripPrefix(2))
-                        .uri("http://ms-rutas:8080"))
-
-                // Ruta para el microservicio de flota
-                .route("flota", r -> r.path("/api/flota/**")
+                        .uri("http://ms-geolocalizacion:8080"))
+                .route("route_transporte", p -> p.path("/api/transporte/**")
                         .filters(f -> f.stripPrefix(2))
-                        .uri("http://ms-flota:8080"))
+                        .uri("http://ms-transporte:8080"))
                 .build();
     }
 }

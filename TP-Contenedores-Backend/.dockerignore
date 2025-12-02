@@ -1,14 +1,23 @@
-# Ignorar carpetas de compilación de Maven
-**/target
+# Ignorar carpetas pesadas de datos
+osrm-data/
+postgres_data/
+keycloak_data/
+
+# Ignorar archivos compilados locales
+**/target/
+**/*.class
+**/*.jar
 
 # Ignorar configuraciones de IDE
 .idea/
+.vscode/
 *.iml
+.classpath
+.project
+.settings/
 
-# Ignorar archivos de Git
-.git
+# Ignorar logs y temporales
+*.log
+docker-compose.override.yml
+.git/
 .gitignore
-
-# Ignorar logs locales y archivos de configuración de Docker
-docker-compose.log
-.docker/

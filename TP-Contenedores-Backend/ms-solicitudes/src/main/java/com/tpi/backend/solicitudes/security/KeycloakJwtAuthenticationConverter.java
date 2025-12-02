@@ -1,0 +1,36 @@
+package com.tpi.backend.solicitudes.security;
+
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
+
+    @Override
+    public AbstractAuthenticationToken convert(Jwt jwt) {
+        var defaultConverter = new JwtGrantedAuthoritiesConverter();
+        Collection<GrantedAuthority> authorities = defaultConverter.convert(jwt);
+
+        Map<String, Object> access = jwt.getClaimAsMap("realm_access");
+        if (access != null && access.containsKey("roles")) {
+            List<String> rolesList = (List<String>) access.get("roles");
+            var keycloakRoles = rolesList.stream()
+                    .map(r -> new SimpleGrantedAuthority("ROLE_" + r.toUpperCase()))
+                    .collect(Collectors.toList());
+
+            authorities = Stream.concat(authorities.stream(), keycloakRoles.stream()).collect(Collectors.toSet());
+        }
+
+        return new JwtAuthenticationToken(jwt, authorities);
+    }
+}

@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### OSRM Data (Archivos de mapas pesados) ###
+osrm-data/

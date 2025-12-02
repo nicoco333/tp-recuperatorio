@@ -1,15 +1,20 @@
-# Imagen base con Java 21 (JDK)
+FROM maven:3.9.4-eclipse-temurin-21 AS builder
+WORKDIR /app_build
+
+COPY pom.xml .
+COPY common-data/pom.xml common-data/pom.xml
+COPY gateway/pom.xml gateway/pom.xml
+COPY ms-transporte/pom.xml ms-transporte/pom.xml
+COPY ms-geolocalizacion/pom.xml ms-geolocalizacion/pom.xml
+COPY ms-solicitudes/pom.xml ms-solicitudes/pom.xml
+
+COPY common-data/src common-data/src
+COPY ms-solicitudes/src ms-solicitudes/src
+
+RUN mvn -pl ms-solicitudes -am -DskipTests package
+
 FROM eclipse-temurin:21-jdk
-
-# Establece el directorio de trabajo dentro del contenedor
 WORKDIR /app
-
-# Copia el archivo .jar compilado desde la carpeta target del host al contenedor
-# El wildcard (*) hace que no tengamos que preocuparnos por el número de versión
-COPY target/*.jar app.jar
-
-# Expone el puerto en el que correrá la aplicación dentro del contenedor
+COPY --from=builder /app_build/ms-solicitudes/target/*.jar app.jar
 EXPOSE 8080
-
-# El comando que se ejecutará cuando el contenedor inicie
 ENTRYPOINT ["java","-jar","app.jar"]

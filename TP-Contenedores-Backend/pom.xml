@@ -12,12 +12,12 @@
     <packaging>pom</packaging>
 
     <name>TP-Contenedores-Backend</name>
-    <description>Proyecto de microservicios para transporte de contenedores</description>
+    <description>Sistema de Logística y Transporte de Carga</description>
 
     <modules>
         <module>common-data</module>
-        <module>ms-flota</module>
-        <module>ms-rutas</module>
+        <module>ms-transporte</module>
+        <module>ms-geolocalizacion</module>
         <module>ms-solicitudes</module>
         <module>gateway</module>
     </modules>
@@ -31,7 +31,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- Spring Boot BOM -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>

@@ -1,4 +1,4 @@
-package com.tpi.backend.mssolicitudes;
+package com.tpi.backend.solicitudes;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -7,7 +7,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 class MsSolicitudesApplicationTests {
 
     @Test
-    void contextLoads() {
+    void cargarContexto() {
     }
-
 }
