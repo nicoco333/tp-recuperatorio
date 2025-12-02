@@ -1,4 +1,4 @@
-package com.tpi.backend.msflota.dto;
+package com.tpi.backend.transporte.dto;
 
 import lombok.Data;
 import java.time.LocalDate;

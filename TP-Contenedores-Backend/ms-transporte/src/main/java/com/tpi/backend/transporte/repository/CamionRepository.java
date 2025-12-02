@@ -1,4 +1,4 @@
-package com.tpi.backend.msflota.repository;
+package com.tpi.backend.transporte.repository;
 
 import entities.Camion;
 import org.springframework.data.jpa.repository.JpaRepository;
