@@ -1,10 +1,10 @@
 package com.tpi.backend.geolocalizacion.service;
 
-import com.tpi.backend.msrutas.client.TarifaClient;
-import com.tpi.backend.msrutas.dto.DistanciaTotalRutaDTO;
-import com.tpi.backend.msrutas.dto.TarifaDTO;
-import com.tpi.backend.msrutas.dto.geolocalizacion.DistanciaDTO;
-import com.tpi.backend.msrutas.repository.*;
+import com.tpi.backend.geolocalizacion.client.TarifaClient;
+import com.tpi.backend.geolocalizacion.dto.DistanciaTotalRutaDTO;
+import com.tpi.backend.geolocalizacion.dto.TarifaDTO;
+import com.tpi.backend.geolocalizacion.dto.distanciageo.DistanciaDTO;
+import com.tpi.backend.geolocalizacion.repository.*;
 import entities.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;

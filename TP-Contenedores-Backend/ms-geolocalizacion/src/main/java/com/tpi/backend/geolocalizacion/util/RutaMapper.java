@@ -1,8 +1,8 @@
 package com.tpi.backend.geolocalizacion.util;
 
-import com.tpi.backend.msrutas.dto.RutaDTO;
-import com.tpi.backend.msrutas.dto.TramoDTO;
-import com.tpi.backend.msrutas.dto.DepositoDTO;
+import com.tpi.backend.geolocalizacion.dto.RutaDTO;
+import com.tpi.backend.geolocalizacion.dto.TramoDTO;
+import com.tpi.backend.geolocalizacion.dto.DepositoDTO;
 import entities.Ruta;
 import entities.Tramo;
 import entities.Deposito;
