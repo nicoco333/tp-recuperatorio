@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/")
@@ -26,8 +27,9 @@ public class SolicitudController {
     }
 
     @GetMapping
-    public List<SolicitudDTO> obtenerTodas(@RequestParam(required = false) Integer id) {
-        return servicio.buscarSolicitudes(id).stream()
+    public List<SolicitudDTO> obtenerTodas(@RequestParam(required = false) Integer id,
+                                           @RequestParam(required = false) Integer dniCliente) {
+        return servicio.buscarSolicitudes(id, dniCliente).stream()
                 .map(convertidor::toSolicitudDTO)
                 .toList();
     }
@@ -51,6 +53,26 @@ public class SolicitudController {
             return ResponseEntity.ok(convertidor.toSolicitudDTO(s));
         } catch (EntityNotFoundException e) {
             return armarRespuestaError(HttpStatus.NOT_FOUND, e.getMessage(), req);
+        }
+    }
+
+    // --- ENDPOINT CORREGIDO PARA RECIBIR TODOS LOS DATOS ---
+    @PatchMapping("/{id}/progreso")
+    public ResponseEntity<?> actualizarProgreso(@PathVariable Integer id, @RequestBody Map<String, Object> body, HttpServletRequest req) {
+        try {
+            // Extraer con seguridad (pueden venir nulos)
+            Double cEst = body.get("costoEstimado") != null ? Double.valueOf(body.get("costoEstimado").toString()) : null;
+            Integer tEst = body.get("tiempoEstimado") != null ? Integer.valueOf(body.get("tiempoEstimado").toString()) : null;
+            
+            Double cReal = body.get("costoReal") != null ? Double.valueOf(body.get("costoReal").toString()) : null;
+            Integer tReal = body.get("tiempoReal") != null ? Integer.valueOf(body.get("tiempoReal").toString()) : null;
+            
+            String estado = (String) body.get("estado");
+            
+            servicio.actualizarProgreso(id, cEst, tEst, cReal, tReal, estado);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return armarRespuestaError(HttpStatus.BAD_REQUEST, "Error actualizando progreso: " + e.getMessage(), req);
         }
     }
 
@@ -111,7 +133,7 @@ public class SolicitudController {
         return ResponseEntity.status(HttpStatus.CREATED).body(convertidor.toEstadoDTO(e));
     }
 
-    @PostMapping("/solicitudes/{id}/tarifa")
+    @PostMapping("/{id}/tarifa")
     public ResponseEntity<?> cotizar(@PathVariable Integer id, HttpServletRequest req) {
         try {
             return ResponseEntity.ok(servicio.cotizarSolicitud(id));

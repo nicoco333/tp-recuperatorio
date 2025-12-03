@@ -1,0 +1,128 @@
+{
+  "info": {
+    "_postman_id": "0ac02a76-be2f-43b8-8e07-6704d31acd8d",
+    "name": "backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "44547861",
+    "_collection_link": "https://fafsf8.postman.co/workspace/fafsf-Workspace~1c5f5ba5-f4f2-417c-840a-f1beffd83812/collection/44547861-0ac02a76-be2f-43b8-8e07-6704d31acd8d?action=share&source=collection_link&creator=44547861"
+  },
+  "item": [
+    {
+      "name": "Obtener Token ADMIN",
+      "id": "96ac8d26-aaf4-4c10-997a-d90ecf49ea4c",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "Obtener Token Operador",
+      "id": "4ea732ee-4c88-4fbc-b376-2822bcddfff2",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "Obtener Token Cliente",
+      "id": "b0883a09-c30e-4ae6-be3d-4d26bd3d30cd",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "Obtener Token Transportista",
+      "id": "681a2d70-4378-4d55-92b0-9a13ff39aa64",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "Registrar Nuevo Cliente",
+      "id": "e0fdab01-4134-4aac-ade4-2b49835bae52",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "Nuevo Contenedor",
+      "id": "d48c4330-ea09-4275-a94d-b5e35381210c",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "Solicitud de Traslado",
+      "id": "98ce8ddc-9457-42a9-bcc9-c86cbffe9727",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "Verificacion Estado",
+      "id": "b0b436f7-579c-4a54-aab0-41c4c5fa722d",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "Crear Ruta",
+      "id": "9dd05006-470c-472f-b410-d289455a1d21",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "Crear Tramo",
+      "id": "ed23fd0e-602a-4b4b-b011-c2c1ef777281",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "Transporte inicio",
+      "id": "8cf1ba0e-ac86-4c9f-8dbe-82486e71bde3",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "Transporte final",
+      "id": "034a6d9b-24c6-4ed8-bc2c-dbe5457699bb",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "Calculo costos",
+      "id": "8f3c2d07-cbe4-4b0f-9232-5541d9fbf135",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    }
+  ]
+}

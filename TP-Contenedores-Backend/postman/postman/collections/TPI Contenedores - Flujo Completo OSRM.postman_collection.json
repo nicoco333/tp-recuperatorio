@@ -1,0 +1,451 @@
+{
+  "info": {
+    "_postman_id": "1c5af62d-8d59-43da-86b9-840fb51b86c4",
+    "name": "TPI Contenedores - Flujo Completo OSRM",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Obtener Token Operador",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "id": "bc2f6971-cd73-4a79-a5d7-fe7451243ce6",
+            "exec": [
+              "// Test que guarda el token en el environment seleccionado (muestra logs si falla)",
+              "try {",
+              "  const jsonData = pm.response.json();",
+              "  if (jsonData && jsonData.access_token) {",
+              "    pm.environment.set(\"token\", jsonData.access_token);",
+              "    pm.environment.set(\"token_expires_at\", (Date.now() + (jsonData.expires_in ? jsonData.expires_in * 1000 : 3600 * 1000)).toString());",
+              "    console.log(\"Token guardado en environment (token):\", jsonData.access_token.slice(0,20) + \"...\");",
+              "    pm.test(\"Token guardado\", function () { pm.expect(jsonData.access_token).to.be.a(\"string\"); });",
+              "  } else {",
+              "    console.log(\"Respuesta sin access_token:\", pm.response.text());",
+              "    pm.test(\"No se obtuvo access_token\", function(){ pm.expect(jsonData.access_token).to.exist; });",
+              "  }",
+              "} catch (e) {",
+              "  console.log(\"Error parseando respuesta token:\", e, pm.response.text());",
+              "  pm.test(\"Error al parsear token\", () => { throw e; });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "id": "761bebed-0ba2-4f1f-b318-f5946fb9428d",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "client_id",
+              "value": "tpi-backend-client",
+              "type": "text"
+            },
+            {
+              "key": "username",
+              "value": "operador01",
+              "type": "text"
+            },
+            {
+              "key": "password",
+              "value": "Clave123",
+              "type": "text"
+            },
+            {
+              "key": "grant_type",
+              "value": "password",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8081/realms/tpi-backend/protocol/openid-connect/token",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8081",
+          "path": [
+            "realms",
+            "tpi-backend",
+            "protocol",
+            "openid-connect",
+            "token"
+          ]
+        }
+      }
+    },
+    {
+      "name": "1. Obtener Token Cliente",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = JSON.parse(responseBody);",
+              "pm.environment.set(\"token\", jsonData.access_token);"
+            ],
+            "type": "text/javascript",
+            "id": "bc2f6971-cd73-4a79-a5d7-fe7451243ce6"
+          }
+        }
+      ],
+      "id": "981c75fd-bc31-4e13-a4fa-ae69482782c4",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "client_id",
+              "value": "backend-client",
+              "type": "text"
+            },
+            {
+              "key": "username",
+              "value": "operador1",
+              "type": "text"
+            },
+            {
+              "key": "password",
+              "value": "1234",
+              "type": "text"
+            },
+            {
+              "key": "grant_type",
+              "value": "password",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8081/realms/tpi-backend/protocol/openid-connect/token",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8081",
+          "path": [
+            "realms",
+            "tpi-backend",
+            "protocol",
+            "openid-connect",
+            "token"
+          ]
+        }
+      }
+    },
+    {
+      "name": "1. Obtener Token Transportista",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = JSON.parse(responseBody);",
+              "pm.environment.set(\"token\", jsonData.access_token);"
+            ],
+            "type": "text/javascript",
+            "id": "bc2f6971-cd73-4a79-a5d7-fe7451243ce6"
+          }
+        }
+      ],
+      "id": "e5c03171-5ab0-408d-a326-1618cc4993b0",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "client_id",
+              "value": "backend-client",
+              "type": "text"
+            },
+            {
+              "key": "username",
+              "value": "operador1",
+              "type": "text"
+            },
+            {
+              "key": "password",
+              "value": "1234",
+              "type": "text"
+            },
+            {
+              "key": "grant_type",
+              "value": "password",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8081/realms/tpi-backend/protocol/openid-connect/token",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8081",
+          "path": [
+            "realms",
+            "tpi-backend",
+            "protocol",
+            "openid-connect",
+            "token"
+          ]
+        }
+      }
+    },
+    {
+      "name": "2. Crear Solicitud (MS-Solicitudes)",
+      "id": "4bcb6800-2fca-417a-ae9f-60a6f0d87b61",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"dniCliente\": 20123456,\n    \"idContenedor\": 1,\n    \"idEstado\": 2,\n    \"costoEstimado\": 0,\n    \"tiempoEstimado\": 0\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/solicitudes/",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "solicitudes",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "3. Crear Ruta (MS-Geo)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = JSON.parse(responseBody);",
+              "pm.environment.set(\"idRutaCreada\", jsonData.idRuta);"
+            ],
+            "type": "text/javascript",
+            "id": "5a6cf63c-d0ef-487d-9b70-8dee6a7bcf22"
+          }
+        }
+      ],
+      "id": "e95696c0-07b3-46f9-aac1-a60f1a00b340",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"nroSolicitud\": 1,\n    \"cantTramos\": 1,\n    \"cantDepositos\": 0\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/geolocalizacion/rutas",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "geolocalizacion",
+            "rutas"
+          ]
+        }
+      }
+    },
+    {
+      "name": "4. Crear Tramo (Calcula OSRM)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = JSON.parse(responseBody);",
+              "pm.environment.set(\"idTramoCreado\", jsonData.idTramo);",
+              "// Verifica que OSRM calculó algo",
+              "pm.test(\"Costo Aproximado calculado\", function () {",
+              "    pm.expect(jsonData.costoAproximado).to.be.above(0);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "id": "e49c5c78-02d5-46f8-a11c-5ccc14bf29f7"
+          }
+        }
+      ],
+      "id": "0dafdd15-d793-43df-8c3f-6ffadae45c07",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"idRuta\": {{idRutaCreada}},\n    \"origenGeo\": 1,\n    \"destinoGeo\": 2,\n    \"tipoTramo\": 4,\n    \"idEstado\": 3,\n    \"orden\": 1,\n    \"dominioCamion\": \"AJ345KL\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/geolocalizacion/rutas/tramo",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "geolocalizacion",
+            "rutas",
+            "tramo"
+          ]
+        },
+        "description": "Crea tramo entre CABA (1) y Córdoba (2). Debe calcular distancia con OSRM y costo con MS-Transporte."
+      }
+    },
+    {
+      "name": "5. Marcar Inicio",
+      "id": "168cf605-087c-402e-a659-36784e678182",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/geolocalizacion/rutas/tramo/{{idTramoCreado}}/marcar-inicio",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "geolocalizacion",
+            "rutas",
+            "tramo",
+            "{{idTramoCreado}}",
+            "marcar-inicio"
+          ]
+        },
+        "description": "Se envía JSON vacío. El backend debe poner LocalDateTime.now()"
+      }
+    },
+    {
+      "name": "6. Marcar Fin (FECHA AUTOMATICA)",
+      "id": "75ab92e3-dfdd-42bd-a0f5-b18e0f32a354",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/geolocalizacion/rutas/tramo/{{idTramoCreado}}/marcar-fin",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "geolocalizacion",
+            "rutas",
+            "tramo",
+            "{{idTramoCreado}}",
+            "marcar-fin"
+          ]
+        },
+        "description": "Se envía JSON vacío. El backend asigna fecha fin."
+      }
+    },
+    {
+      "name": "Ver Solicitudes",
+      "id": "de3e2075-3aff-4c31-b533-729a13514936",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": ""
+        }
+      }
+    },
+    {
+      "name": "Estados",
+      "id": "059e15a5-1ff5-44fc-8436-cd1c4ac931ad",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": ""
+        }
+      }
+    }
+  ]
+}

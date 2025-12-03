@@ -21,7 +21,7 @@ public class TarifaClient {
 
         TarifaDTO[] respuesta = client.get()
                 .uri(uri -> uri.path("/tarifas")
-                        .queryParam("dominio_camion", patente) // <-- usar snake_case para coincidir con el controlador
+                        .queryParam("dominio_camion", patente) 
                         .build())
                 .headers(h -> {
                     if (jwt != null) h.setBearerAuth(jwt);

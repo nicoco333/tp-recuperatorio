@@ -1,0 +1,17 @@
+{
+  "workspace": {
+    "id": "1c5f5ba5-f4f2-417c-840a-f1beffd83812"
+  },
+  "entities": {
+    "collections": [
+      "..\\postman\\collections\\TPI Contenedores - Flujo Completo OSRM.postman_collection.json",
+      "..\\postman\\collections\\backend.postman_collection.json"
+    ],
+    "environments": [
+      "..\\postman\\environments\\Tpi-Local.postman_environment.json"
+    ],
+    "specs": [],
+    "flows": [],
+    "globals": []
+  }
+}

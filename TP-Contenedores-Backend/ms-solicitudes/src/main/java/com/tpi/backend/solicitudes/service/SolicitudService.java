@@ -35,10 +35,56 @@ public class SolicitudService {
         this.clienteTransporte = clienteTransporte;
     }
 
-    public List<Solicitud> buscarSolicitudes(Integer numero) {
-        return (numero != null) 
-                ? repoSolicitud.findByNroSolicitud(numero)
-                : repoSolicitud.findAll();
+    public List<Solicitud> buscarSolicitudes(Integer numero, Integer dniCliente) {
+        if (numero != null) {
+            return repoSolicitud.findByNroSolicitud(numero);
+        }
+        if (dniCliente != null) {
+            return repoSolicitud.findByCliente_DniCliente(dniCliente);
+        }
+        return repoSolicitud.findAll();
+    }
+
+    // --- LÓGICA DE ACUMULACIÓN DE DATOS ---
+    public void actualizarProgreso(Integer idSolicitud, 
+                                   Double deltaCostoEst, Integer deltaTiempoEst, 
+                                   Double deltaCostoReal, Integer deltaTiempoReal, 
+                                   String descripcionEstado) {
+        
+        Solicitud sol = repoSolicitud.findById(idSolicitud)
+                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + idSolicitud));
+
+        // 1. Acumular Estimados (Se suman al crear cada tramo)
+        if (deltaCostoEst != null) {
+            float actual = sol.getCostoEstimado() != null ? sol.getCostoEstimado() : 0f;
+            sol.setCostoEstimado(actual + deltaCostoEst.floatValue());
+        }
+        if (deltaTiempoEst != null) {
+            int actual = sol.getTiempoEstimado() != null ? sol.getTiempoEstimado() : 0;
+            sol.setTiempoEstimado(actual + deltaTiempoEst);
+        }
+
+        // 2. Acumular Reales (Se suman al finalizar cada tramo)
+        if (deltaCostoReal != null) {
+            float actual = sol.getCostoReal() != null ? sol.getCostoReal() : 0f;
+            sol.setCostoReal(actual + deltaCostoReal.floatValue());
+        }
+        if (deltaTiempoReal != null) {
+            int actual = sol.getTiempoReal() != null ? sol.getTiempoReal() : 0;
+            sol.setTiempoReal(actual + deltaTiempoReal);
+        }
+
+        // 3. Actualizar Estado (si cambia)
+        if (descripcionEstado != null && !descripcionEstado.isBlank()) {
+            Estado nuevoEstado = repoEstado.findAll().stream()
+                    .filter(e -> e.getDescripcion().equalsIgnoreCase(descripcionEstado)
+                            && e.getContexto() == Contexto.SOLICITUD)
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Estado inválido: " + descripcionEstado));
+            sol.setEstado(nuevoEstado);
+        }
+
+        repoSolicitud.save(sol);
     }
 
     public Solicitud registrarSolicitud(Solicitud nueva) {
@@ -55,11 +101,25 @@ public class SolicitudService {
         validarPropiedadContenedor(contDb, dni);
         validarDisponibilidadContenedor(idCont);
 
+        if (contDb.getEstado().getIdEstado() != 1) { 
+             throw new IllegalArgumentException("El contenedor seleccionado no está disponible (ID Estado != 1).");
+        }
+        Estado estadoOcupado = repoEstado.findById(6)
+                .orElseThrow(() -> new IllegalStateException("Estado ID 6 (CONTENEDOR OCUPADO) no encontrado"));
+        contDb.setEstado(estadoOcupado);
+        repoContenedor.save(contDb);
+
         nueva.setCliente(clienteDb);
         nueva.setContenedor(contDb);
         
+        // Inicializamos todo en 0
+        nueva.setCostoReal(0f); 
+        nueva.setCostoEstimado(0f);
+        nueva.setTiempoEstimado(0);
+        nueva.setTiempoReal(0);
+
         if (nueva.getEstado() == null) {
-             nueva.setEstado(repoEstado.findById(1).orElse(null)); 
+             nueva.setEstado(repoEstado.findById(2).orElse(null)); 
         }
 
         return repoSolicitud.save(nueva);
@@ -93,19 +153,16 @@ public class SolicitudService {
         }
         if (dni != null) return repoContenedor.findByCliente_DniCliente(dni);
         if (estado != null) return repoContenedor.findByEstado_DescripcionIgnoreCase(estado);
-        
         return repoContenedor.findAll();
     }
 
     public EstadoDTO consultarEstadoContenedor(Integer id) {
         Contenedor c = repoContenedor.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Contenedor no hallado"));
-
         Estado e = c.getEstado();
         if (e == null || e.getContexto() != Contexto.CONTENEDOR) {
             throw new IllegalStateException("Estado inválido o no asignado");
         }
-        
         EstadoDTO dto = new EstadoDTO();
         dto.setIdEstado(e.getIdEstado());
         dto.setContexto(e.getContexto().name());
@@ -128,34 +185,18 @@ public class SolicitudService {
         return repoEstado.save(e);
     }
 
+    // Este método queda como opción manual, pero ahora la lógica principal es automática en los tramos
     public TarifaSolicitudDTO cotizarSolicitud(Integer idSolicitud) {
         Solicitud sol = repoSolicitud.findById(idSolicitud)
                 .orElseThrow(() -> new EntityNotFoundException("Solicitud inexistente"));
-
-        Contenedor cont = sol.getContenedor();
-        if (cont == null) throw new IllegalStateException("Falta contenedor asociado");
-
-        String coordsOrigen = "-64.1833,-31.4167"; 
-        String coordsDestino = "-60.64,-32.95";
-
-        DistanciaDTO infoRuta = clienteLocalizacion.consultarDistancia(coordsOrigen, coordsDestino);
-        double kms = infoRuta.getKilometros();
-
-        double costoBase = clienteTransporte.obtenerCostoBase("BASE", kms, cont.getPesoKg());
-
-        validarCapacidadCamion("AJ345KL", cont.getPesoKg(), cont.getVolumenM3());
-
-        double total = costoBase; 
         
-        sol.setCostoReal((float) total);
-        repoSolicitud.save(sol);
-
+        // Retornamos lo que ya tiene calculado la solicitud
         TarifaSolicitudDTO cotizacion = new TarifaSolicitudDTO();
         cotizacion.setNroSolicitud(idSolicitud);
-        cotizacion.setDistanciaKm(kms);
-        cotizacion.setCostoTraslado(costoBase);
-        cotizacion.setCostoReal(total);
+        cotizacion.setCostoReal((double) (sol.getCostoReal() != null ? sol.getCostoReal() : 0));
         
+        // (Podrías dejar la lógica vieja aquí si quieres recalcular todo de cero, 
+        // pero chocaría con la acumulación progresiva de tramos).
         return cotizacion;
     }
 
@@ -173,7 +214,7 @@ public class SolicitudService {
     }
 
     private void validarDisponibilidadContenedor(Integer id) {
-        if (repoSolicitud.existsByContenedor_IdContenedorAndEstado_DescripcionIn(id, List.of("ACTIVA", "ACT"))) {
+        if (repoSolicitud.existsByContenedor_IdContenedorAndEstado_DescripcionIn(id, List.of("ACTIVA", "ACT", "EN CURSO"))) {
             throw new IllegalArgumentException("Contenedor ya tiene solicitud activa");
         }
     }
@@ -212,14 +253,6 @@ public class SolicitudService {
     private void vincularEstado(Contenedor c) {
         if (c.getEstado() != null && c.getEstado().getIdEstado() != null) {
             c.setEstado(repoEstado.findById(c.getEstado().getIdEstado()).orElseThrow());
-        }
-    }
-
-    private void validarCapacidadCamion(String patente, Float peso, Float volumen) {
-        CamionFlotaDTO unidad = clienteTransporte.buscarUnidad(patente);
-        if (unidad != null) {
-            if (peso > unidad.getCapacidadKg()) throw new IllegalArgumentException("Excede peso máximo");
-            if (volumen > unidad.getVolumenM3()) throw new IllegalArgumentException("Excede volumen máximo");
         }
     }
 }
