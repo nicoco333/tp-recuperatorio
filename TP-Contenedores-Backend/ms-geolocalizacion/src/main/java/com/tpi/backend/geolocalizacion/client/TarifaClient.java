@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.core.Authentication;
 
 @Component
@@ -17,13 +16,12 @@ public class TarifaClient {
         this.client = client;
     }
 
-
     public TarifaDTO obtenerTarifaPorCamion(String patente) {
         String jwt = obtenerTokenActual();
 
         TarifaDTO[] respuesta = client.get()
                 .uri(uri -> uri.path("/tarifas")
-                        .queryParam("dominioCamion", patente)
+                        .queryParam("dominio_camion", patente) // <-- usar snake_case para coincidir con el controlador
                         .build())
                 .headers(h -> {
                     if (jwt != null) h.setBearerAuth(jwt);

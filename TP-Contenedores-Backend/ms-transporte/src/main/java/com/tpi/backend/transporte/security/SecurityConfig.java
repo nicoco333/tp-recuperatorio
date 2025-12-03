@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 
 @Configuration
 @EnableWebSecurity
@@ -15,15 +16,17 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain reglasSeguridad(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(auth -> auth
+        http
+            .csrf(AbstractHttpConfigurer::disable) // Desactivar CSRF para APIs
+            .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/**").hasRole("OPERADOR")
                 .requestMatchers(HttpMethod.PUT, "/**").hasRole("OPERADOR")
                 .requestMatchers(HttpMethod.GET, "/**").authenticated()
                 .anyRequest().authenticated()
-        )
-        .oauth2ResourceServer(oauth -> oauth
+            )
+            .oauth2ResourceServer(oauth -> oauth
                 .jwt(token -> token.jwtAuthenticationConverter(new KeycloakJwtAuthenticationConverter()))
-        );
+            );
         return http.build();
     }
 }

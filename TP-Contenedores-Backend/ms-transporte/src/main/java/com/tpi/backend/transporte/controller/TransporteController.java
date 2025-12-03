@@ -29,9 +29,10 @@ public class TransporteController {
     }
 
     @GetMapping("/camiones")
-    public ResponseEntity<?> verUnidades(@RequestParam(required = false) String dominio,
-                                         @RequestParam(required = false) Boolean disponible,
-                                         HttpServletRequest req) {
+    public ResponseEntity<?> verUnidades(
+            @RequestParam(value = "dominio", required = false) String dominio,
+            @RequestParam(value = "disponible", required = false) Boolean disponible,
+            HttpServletRequest req) {
         try {
             // Reemplazamos 'var' por List<CamionDTO> explícito
             List<CamionDTO> lista = servicio.buscarUnidades(dominio, disponible).stream()
@@ -87,9 +88,18 @@ public class TransporteController {
         return convertidor.toTransportistaDTO(t);
     }
 
+    /**
+     * Endpoint para listar tarifas.
+     * Acepta tanto el parámetro "patente" (compatibilidad hacia atrás) como "dominio_camion" (snake_case).
+     * Si ambos llegan, se prioriza "dominio_camion".
+     */
     @GetMapping("/tarifas")
-    public List<TarifaDTO> verTarifas(@RequestParam(required = false) String patente) {
-        return servicio.consultarTarifas(patente).stream()
+    public List<TarifaDTO> verTarifas(
+            @RequestParam(value = "patente", required = false) String patente,
+            @RequestParam(value = "dominio_camion", required = false) String dominioCamion
+    ) {
+        String dominio = (dominioCamion != null && !dominioCamion.isBlank()) ? dominioCamion : patente;
+        return servicio.consultarTarifas(dominio).stream()
                 .map(convertidor::toTarifaDTO)
                 .collect(Collectors.toList());
     }
@@ -101,9 +111,10 @@ public class TransporteController {
     }
 
     @GetMapping("/tarifas/calcular")
-    public ResponseEntity<Double> calcular(@RequestParam String tipoContenedor,
-                                           @RequestParam Double distancia,
-                                           @RequestParam Double peso) {
+    public ResponseEntity<Double> calcular(
+            @RequestParam(value = "tipoContenedor") String tipoContenedor,
+            @RequestParam(value = "distancia") Double distancia,
+            @RequestParam(value = "peso") Double peso) {
         return ResponseEntity.ok(servicio.estimarCosto(tipoContenedor, distancia, peso));
     }
 

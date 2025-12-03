@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 
 @Configuration
 @EnableWebSecurity
@@ -15,17 +16,19 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain seguridad(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(auth -> auth
+        http
+            .csrf(AbstractHttpConfigurer::disable) // Desactivar CSRF para APIs
+            .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/**").hasRole("OPERADOR")
                 .requestMatchers(HttpMethod.PUT, "/rutas/tramo/*/asignar-unidad").hasAnyRole("OPERADOR", "ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/rutas/tramo/*/marcar-inicio").hasAnyRole("OPERADOR", "TRANSPORTISTA")
                 .requestMatchers(HttpMethod.PUT, "/rutas/tramo/*/marcar-fin").hasAnyRole("OPERADOR", "TRANSPORTISTA")
                 .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("OPERADOR", "TRANSPORTISTA", "CLIENTE")
                 .anyRequest().authenticated()
-        )
-        .oauth2ResourceServer(oauth2 -> oauth2
+            )
+            .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(new KeycloakJwtAuthenticationConverter()))
-        );
+            );
         return http.build();
     }
 }

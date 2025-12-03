@@ -19,6 +19,9 @@ public class GeoService {
 
     private final RestClient.Builder builder;
 
+    /**
+     * Calcula distancia usando OSRM. Las coordenadas deben venir en formato "lon,lat".
+     */
     public DistanciaDTO calcularDistancia(String coordenadasOrigen, String coordenadasDestino) throws Exception {
         // Configuramos el cliente con la URL base de OSRM
         RestClient client = builder.baseUrl(osrmApiUrl).build();
@@ -39,7 +42,7 @@ public class GeoService {
             JsonNode root = mapper.readTree(response.getBody());
 
             // Validar código de respuesta de OSRM
-            if (!"Ok".equals(root.path("code").asText())) {
+            if (!"Ok".equalsIgnoreCase(root.path("code").asText())) {
                 throw new Exception("Error de OSRM: " + root.path("message").asText());
             }
 
@@ -48,7 +51,7 @@ public class GeoService {
             if (routes.isEmpty()) {
                 throw new Exception("OSRM no encontró una ruta válida entre las coordenadas indicadas.");
             }
-            
+
             JsonNode route = routes.get(0);
 
             DistanciaDTO dto = new DistanciaDTO();
@@ -63,7 +66,7 @@ public class GeoService {
             // Convertimos a Km y Minutos para mantener consistencia con tu DTO
             dto.setKilometros(metros / 1000.0);
             dto.setDuracionMinutos((long) (segundos / 60));
-            
+
             // Texto descriptivo simple
             long horas = dto.getDuracionMinutos() / 60;
             long mins = dto.getDuracionMinutos() % 60;

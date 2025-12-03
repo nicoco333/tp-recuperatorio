@@ -141,89 +141,17 @@ public class RutaService {
         return tramoRepository.save(tramo);
     }
 
-    // ================== HELPERS PRIVADOS ==================
-
-    private Float calcularCostoAproximado(Camion camion, DistanciaDTO dist) {
-        if (camion == null || dist == null) {
-            return null;
+    // New helper: calcular distancia de primer tramo de la ruta asociada a una solicitud
+    public DistanciaDTO obtenerDistanciaPorSolicitud(Integer nroSolicitud) {
+        // Usamos el método del repository que trae tramos ordenados por orden ascendente,
+        // ahora atravesando ruta -> solicitud -> nroSolicitud
+        List<Tramo> tramos = tramoRepository.findByRuta_Solicitud_NroSolicitudOrderByOrdenAsc(nroSolicitud);
+        if (tramos == null || tramos.isEmpty()) {
+            throw new IllegalArgumentException("No se encontró ningún tramo para la solicitud " + nroSolicitud);
         }
-        double kms = dist.getKilometros();
-        Float consumoPromKm = camion.getConsumoPromKm();
-        Float costoLitroCombustible = obtenerCostoLitroCombustible(camion);
-
-        if (kms <= 0 || consumoPromKm == null || consumoPromKm <= 0
-                || costoLitroCombustible == null || costoLitroCombustible <= 0) {
-            return null;
-        }
-        double litrosTotales = kms * consumoPromKm;
-        double costo = litrosTotales * costoLitroCombustible;
-        return (float) costo;
-    }
-
-    private Float obtenerCostoLitroCombustible(Camion camion) {
-        if (camion == null || camion.getDominioCamion() == null) {
-            return null;
-        }
-        TarifaDTO tarifa = tarifaClient.obtenerTarifaPorCamion(camion.getDominioCamion());
-        if (tarifa == null || tarifa.getCostoLitroCombustible() == null) {
-            throw new IllegalStateException("No se encontró tarifa con costoLitroCombustible para el camión " + camion.getDominioCamion());
-        }
-        return tarifa.getCostoLitroCombustible();
-    }
-
-    private Geolocalizacion resolverOrigen(Tramo tramo) {
-        if (tramo.getOrigenDeposito() != null && tramo.getOrigenDeposito().getIdDeposito() != null) {
-            Long idDep = tramo.getOrigenDeposito().getIdDeposito();
-            Deposito deposito = depositoRepository.findById(idDep)
-                    .orElseThrow(() -> new IllegalArgumentException("No existe depósito origen con id " + idDep));
-            tramo.setOrigenDeposito(deposito);
-            if (deposito.getGeolocalizacion() == null) {
-                throw new IllegalStateException("El depósito origen " + idDep + " no tiene geolocalización asociada");
-            }
-            return deposito.getGeolocalizacion();
-        }
-        if (tramo.getOrigenGeo() != null && tramo.getOrigenGeo().getIdGeo() != null) {
-            Integer idGeo = tramo.getOrigenGeo().getIdGeo();
-            Geolocalizacion geo = geolocalizacionRepository.findById(idGeo)
-                    .orElseThrow(() -> new IllegalArgumentException("No existe geolocalización origen con id " + idGeo));
-            tramo.setOrigenGeo(geo);
-            return geo;
-        }
-        throw new IllegalArgumentException("Debe indicar origenGeo o origenDepositoId para el tramo.");
-    }
-
-    private Geolocalizacion resolverDestino(Tramo tramo) {
-        if (tramo.getDestinoDeposito() != null && tramo.getDestinoDeposito().getIdDeposito() != null) {
-            Long idDep = tramo.getDestinoDeposito().getIdDeposito();
-            Deposito deposito = depositoRepository.findById(idDep)
-                    .orElseThrow(() -> new IllegalArgumentException("No existe depósito destino con id " + idDep));
-            tramo.setDestinoDeposito(deposito);
-            if (deposito.getGeolocalizacion() == null) {
-                throw new IllegalStateException("El depósito destino " + idDep + " no tiene geolocalización asociada");
-            }
-            return deposito.getGeolocalizacion();
-        }
-        if (tramo.getDestinoGeo() != null && tramo.getDestinoGeo().getIdGeo() != null) {
-            Integer idGeo = tramo.getDestinoGeo().getIdGeo();
-            Geolocalizacion geo = geolocalizacionRepository.findById(idGeo)
-                    .orElseThrow(() -> new IllegalArgumentException("No existe geolocalización destino con id " + idGeo));
-            tramo.setDestinoGeo(geo);
-            return geo;
-        }
-        throw new IllegalArgumentException("Debe indicar destinoGeo o destinoDepositoId para el tramo.");
-    }
-
-    // --- MODIFICADO PARA OSRM ---
-    private DistanciaDTO calcularDistanciaEntre(Geolocalizacion origen, Geolocalizacion destino) {
-        // IMPORTANTE: OSRM espera "Longitud,Latitud", NO "Latitud,Longitud"
-        String origenStr = origen.getLongitud() + "," + origen.getLatitud();
-        String destinoStr = destino.getLongitud() + "," + destino.getLatitud();
-
-        try {
-            return geoService.calcularDistancia(origenStr, destinoStr);
-        } catch (Exception e) {
-            throw new RuntimeException("Error al calcular distancia entre origen y destino", e);
-        }
+        Tramo primerTramo = tramos.get(0);
+        // Obtener mediante el método ya existente que calcula distancia de un tramo por su id
+        return obtenerDistanciaDeTramo(primerTramo.getIdTramo());
     }
 
     public Tramo asignarCamionATramo(Integer idTramo, String dominioCamion) {
@@ -321,5 +249,90 @@ public class RutaService {
             geolocalizacionRepository.save(deposito.getGeolocalizacion());
         }
         return depositoRepository.save(deposito);
+    }
+
+    // ================== HELPERS PRIVADOS ==================
+
+    private Float calcularCostoAproximado(Camion camion, DistanciaDTO dist) {
+        if (camion == null || dist == null) {
+            return null;
+        }
+        double kms = dist.getKilometros();
+        Float consumoPromKm = camion.getConsumoPromKm();
+        Float costoLitroCombustible = obtenerCostoLitroCombustible(camion);
+
+        if (kms <= 0 || consumoPromKm == null || consumoPromKm <= 0
+                || costoLitroCombustible == null || costoLitroCombustible <= 0) {
+            return null;
+        }
+        double litrosTotales = kms * consumoPromKm;
+        double costo = litrosTotales * costoLitroCombustible;
+        return (float) costo;
+    }
+
+    private Float obtenerCostoLitroCombustible(Camion camion) {
+        if (camion == null || camion.getDominioCamion() == null) {
+            return null;
+        }
+        TarifaDTO tarifa = tarifaClient.obtenerTarifaPorCamion(camion.getDominioCamion());
+        if (tarifa == null || tarifa.getCostoLitroCombustible() == null) {
+            throw new IllegalStateException("No se encontró tarifa con costoLitroCombustible para el camión " + camion.getDominioCamion());
+        }
+        return tarifa.getCostoLitroCombustible();
+    }
+
+    private Geolocalizacion resolverOrigen(Tramo tramo) {
+        if (tramo.getOrigenDeposito() != null && tramo.getOrigenDeposito().getIdDeposito() != null) {
+            Long idDep = tramo.getOrigenDeposito().getIdDeposito();
+            Deposito deposito = depositoRepository.findById(idDep)
+                    .orElseThrow(() -> new IllegalArgumentException("No existe depósito origen con id " + idDep));
+            tramo.setOrigenDeposito(deposito);
+            if (deposito.getGeolocalizacion() == null) {
+                throw new IllegalStateException("El depósito origen " + idDep + " no tiene geolocalización asociada");
+            }
+            return deposito.getGeolocalizacion();
+        }
+        if (tramo.getOrigenGeo() != null && tramo.getOrigenGeo().getIdGeo() != null) {
+            Integer idGeo = tramo.getOrigenGeo().getIdGeo();
+            Geolocalizacion geo = geolocalizacionRepository.findById(idGeo)
+                    .orElseThrow(() -> new IllegalArgumentException("No existe geolocalización origen con id " + idGeo));
+            tramo.setOrigenGeo(geo);
+            return geo;
+        }
+        throw new IllegalArgumentException("Debe indicar origenGeo o origenDepositoId para el tramo.");
+    }
+
+    private Geolocalizacion resolverDestino(Tramo tramo) {
+        if (tramo.getDestinoDeposito() != null && tramo.getDestinoDeposito().getIdDeposito() != null) {
+            Long idDep = tramo.getDestinoDeposito().getIdDeposito();
+            Deposito deposito = depositoRepository.findById(idDep)
+                    .orElseThrow(() -> new IllegalArgumentException("No existe depósito destino con id " + idDep));
+            tramo.setDestinoDeposito(deposito);
+            if (deposito.getGeolocalizacion() == null) {
+                throw new IllegalStateException("El depósito destino " + idDep + " no tiene geolocalización asociada");
+            }
+            return deposito.getGeolocalizacion();
+        }
+        if (tramo.getDestinoGeo() != null && tramo.getDestinoGeo().getIdGeo() != null) {
+            Integer idGeo = tramo.getDestinoGeo().getIdGeo();
+            Geolocalizacion geo = geolocalizacionRepository.findById(idGeo)
+                    .orElseThrow(() -> new IllegalArgumentException("No existe geolocalización destino con id " + idGeo));
+            tramo.setDestinoGeo(geo);
+            return geo;
+        }
+        throw new IllegalArgumentException("Debe indicar destinoGeo o destinoDepositoId para el tramo.");
+    }
+
+    // --- MODIFICADO PARA OSRM ---
+    private DistanciaDTO calcularDistanciaEntre(Geolocalizacion origen, Geolocalizacion destino) {
+        // IMPORTANTE: OSRM espera "Longitud,Latitud", NO "Latitud,Longitud"
+        String origenStr = origen.getLongitud() + "," + origen.getLatitud();
+        String destinoStr = destino.getLongitud() + "," + destino.getLatitud();
+
+        try {
+            return geoService.calcularDistancia(origenStr, destinoStr);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al calcular distancia entre origen y destino", e);
+        }
     }
 }
