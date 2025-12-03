@@ -138,10 +138,10 @@ public class SolicitudService {
         String coordsOrigen = "-64.1833,-31.4167"; 
         String coordsDestino = "-60.64,-32.95";
 
-        DistanciaDTO infoRuta = clienteRutas.consultarDistancia(coordsOrigen, coordsDestino);
+        DistanciaDTO infoRuta = clienteLocalizacion.consultarDistancia(coordsOrigen, coordsDestino);
         double kms = infoRuta.getKilometros();
 
-        double costoBase = clienteFlota.obtenerCostoBase("BASE", kms, cont.getPesoKg());
+        double costoBase = clienteTransporte.obtenerCostoBase("BASE", kms, cont.getPesoKg());
 
         validarCapacidadCamion("AJ345KL", cont.getPesoKg(), cont.getVolumenM3());
 
@@ -216,7 +216,7 @@ public class SolicitudService {
     }
 
     private void validarCapacidadCamion(String patente, Float peso, Float volumen) {
-        CamionFlotaDTO unidad = clienteFlota.buscarUnidad(patente);
+        CamionFlotaDTO unidad = clienteTransporte.buscarUnidad(patente);
         if (unidad != null) {
             if (peso > unidad.getCapacidadKg()) throw new IllegalArgumentException("Excede peso máximo");
             if (volumen > unidad.getVolumenM3()) throw new IllegalArgumentException("Excede volumen máximo");

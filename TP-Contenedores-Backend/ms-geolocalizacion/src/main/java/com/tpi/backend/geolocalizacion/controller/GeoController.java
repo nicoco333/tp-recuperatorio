@@ -2,7 +2,7 @@ package com.tpi.backend.geolocalizacion.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import com.tpi.backend.geolocalizacion.dto.geolocalizacion.DistanciaDTO;
+import com.tpi.backend.geolocalizacion.dto.distanciageo.DistanciaDTO;
 import com.tpi.backend.geolocalizacion.service.GeoService;
 
 @RestController

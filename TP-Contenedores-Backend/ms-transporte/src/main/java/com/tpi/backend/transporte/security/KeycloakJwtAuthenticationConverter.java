@@ -18,13 +18,15 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
 
     @Override
     public AbstractAuthenticationToken convert(Jwt source) {
-        var baseConverter = new JwtGrantedAuthoritiesConverter();
+        JwtGrantedAuthoritiesConverter baseConverter = new JwtGrantedAuthoritiesConverter();
         Collection<GrantedAuthority> authorities = baseConverter.convert(source);
 
         Map<String, Object> access = source.getClaimAsMap("realm_access");
         if (access != null && access.containsKey("roles")) {
+            // Casting explícito para evitar problemas de tipos
             List<String> roles = (List<String>) access.get("roles");
-            var kcRoles = roles.stream()
+            
+            List<GrantedAuthority> kcRoles = roles.stream()
                     .map(r -> new SimpleGrantedAuthority("ROLE_" + r.toUpperCase()))
                     .collect(Collectors.toList());
 

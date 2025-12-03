@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.core.Authentication;
 
 @Component
 public class TarifaClient {
@@ -15,7 +17,8 @@ public class TarifaClient {
         this.client = client;
     }
 
-    public TarifaDTO buscarTarifa(String patente) {
+
+    public TarifaDTO obtenerTarifaPorCamion(String patente) {
         String jwt = obtenerTokenActual();
 
         TarifaDTO[] respuesta = client.get()
@@ -32,8 +35,9 @@ public class TarifaClient {
     }
 
     private String obtenerTokenActual() {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth instanceof JwtAuthenticationToken token) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken) {
+            JwtAuthenticationToken token = (JwtAuthenticationToken) auth;
             return token.getToken().getTokenValue();
         }
         throw new RuntimeException("Error: Contexto de seguridad no contiene token JWT válido");

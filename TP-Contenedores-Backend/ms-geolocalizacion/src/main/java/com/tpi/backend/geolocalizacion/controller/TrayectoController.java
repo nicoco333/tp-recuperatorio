@@ -1,7 +1,7 @@
 package com.tpi.backend.geolocalizacion.controller;
 
 import com.tpi.backend.geolocalizacion.dto.*;
-import com.tpi.backend.geolocalizacion.dto.geolocalizacion.DistanciaDTO;
+import com.tpi.backend.geolocalizacion.dto.distanciageo.DistanciaDTO;
 import com.tpi.backend.geolocalizacion.service.RutaService;
 import com.tpi.backend.geolocalizacion.util.RutaMapper;
 import entities.Ruta;

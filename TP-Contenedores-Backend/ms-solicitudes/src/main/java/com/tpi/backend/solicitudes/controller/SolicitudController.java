@@ -1,8 +1,8 @@
 package com.tpi.backend.solicitudes.controller;
 
-import com.tpi.backend.mssolicitudes.dto.*;
-import com.tpi.backend.mssolicitudes.service.SolicitudService;
-import com.tpi.backend.mssolicitudes.util.SolicitudMapper;
+import com.tpi.backend.solicitudes.dto.*;
+import com.tpi.backend.solicitudes.service.SolicitudService;
+import com.tpi.backend.solicitudes.util.SolicitudMapper;
 import entities.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;

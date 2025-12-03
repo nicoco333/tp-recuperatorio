@@ -2,7 +2,7 @@ package com.tpi.backend.geolocalizacion.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tpi.backend.msrutas.dto.geolocalizacion.DistanciaDTO;
+import com.tpi.backend.geolocalizacion.dto.distanciageo.DistanciaDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;

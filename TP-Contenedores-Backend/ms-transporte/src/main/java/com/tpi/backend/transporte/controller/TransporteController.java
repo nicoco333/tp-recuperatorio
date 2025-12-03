@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/")
@@ -32,9 +33,10 @@ public class TransporteController {
                                          @RequestParam(required = false) Boolean disponible,
                                          HttpServletRequest req) {
         try {
-            var lista = servicio.buscarUnidades(dominio, disponible).stream()
+            // Reemplazamos 'var' por List<CamionDTO> explícito
+            List<CamionDTO> lista = servicio.buscarUnidades(dominio, disponible).stream()
                     .map(convertidor::toCamionDTO)
-                    .toList();
+                    .collect(Collectors.toList());
             return ResponseEntity.ok(lista);
         } catch (Exception e) {
             return responderError(HttpStatus.INTERNAL_SERVER_ERROR, "Fallo al listar: " + e.getMessage(), req);
@@ -45,7 +47,7 @@ public class TransporteController {
     public List<CamionDTO> soloDisponibles() {
         return servicio.listarDisponibles().stream()
                 .map(convertidor::toCamionDTO)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/camiones")
@@ -76,7 +78,7 @@ public class TransporteController {
     public List<TransportistaDTO> verTransportistas() {
         return servicio.obtenerTransportistas().stream()
                 .map(convertidor::toTransportistaDTO)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/transportistas")
@@ -89,7 +91,7 @@ public class TransporteController {
     public List<TarifaDTO> verTarifas(@RequestParam(required = false) String patente) {
         return servicio.consultarTarifas(patente).stream()
                 .map(convertidor::toTarifaDTO)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/tarifas")
