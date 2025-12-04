@@ -133,16 +133,6 @@ public class SolicitudController {
         return ResponseEntity.status(HttpStatus.CREATED).body(convertidor.toEstadoDTO(e));
     }
 
-    @PostMapping("/{id}/tarifa")
-    public ResponseEntity<?> cotizar(@PathVariable Integer id, HttpServletRequest req) {
-        try {
-            return ResponseEntity.ok(servicio.cotizarSolicitud(id));
-        } catch (EntityNotFoundException | IllegalArgumentException | IllegalStateException e) {
-            return armarRespuestaError(HttpStatus.BAD_REQUEST, e.getMessage(), req);
-        } catch (Exception e) {
-            return armarRespuestaError(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno: " + e.getMessage(), req);
-        }
-    }
 
     private ResponseEntity<ErrorResponseDTO> armarRespuestaError(HttpStatus estado, String mensaje, HttpServletRequest req) {
         ErrorResponseDTO err = new ErrorResponseDTO(LocalDateTime.now(), estado.value(), estado.getReasonPhrase(), mensaje, req.getRequestURI());

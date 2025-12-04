@@ -21,11 +21,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/").hasRole("CLIENTE")
                 .requestMatchers(HttpMethod.PUT, "/{id}").hasRole("CLIENTE")
-                .requestMatchers(HttpMethod.POST, "/solicitudes/*/tarifa").hasRole("CLIENTE")
                 .requestMatchers(HttpMethod.GET, "/contenedores/*/estado").hasRole("CLIENTE")
-                
                 .requestMatchers(HttpMethod.POST, "/clientes", "/contenedores", "/estados").hasRole("OPERADOR")
-                
                 .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("CLIENTE", "OPERADOR")
                 .anyRequest().authenticated()
             )

@@ -184,13 +184,6 @@ public class SolicitudService {
     public List<Estado> obtenerEstados() { return repoEstado.findAll(); }
     public Estado altaEstado(Estado e) { return repoEstado.save(e); }
 
-    public TarifaSolicitudDTO cotizarSolicitud(Integer idSolicitud) {
-        Solicitud sol = repoSolicitud.findById(idSolicitud).orElseThrow(() -> new EntityNotFoundException("Solicitud inexistente"));
-        TarifaSolicitudDTO cotizacion = new TarifaSolicitudDTO();
-        cotizacion.setNroSolicitud(idSolicitud);
-        cotizacion.setCostoReal((double) (sol.getCostoReal() != null ? sol.getCostoReal() : 0));
-        return cotizacion;
-    }
 
     private void validarDatosMinimos(Solicitud s) {
         if (s.getCliente() == null || s.getCliente().getDniCliente() == null) throw new IllegalArgumentException("Falta cliente");
