@@ -91,12 +91,22 @@
         {
           "listen": "test",
           "script": {
+            "id": "bc2f6971-cd73-4a79-a5d7-fe7451243ce6",
             "exec": [
               "var jsonData = JSON.parse(responseBody);",
               "pm.environment.set(\"token\", jsonData.access_token);"
             ],
-            "type": "text/javascript",
-            "id": "bc2f6971-cd73-4a79-a5d7-fe7451243ce6"
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "id": "90f9be72-e6b6-4dd1-aca7-16dbd4bc2d99",
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript"
           }
         }
       ],
@@ -114,17 +124,17 @@
           "urlencoded": [
             {
               "key": "client_id",
-              "value": "backend-client",
+              "value": "tpi-backend-client",
               "type": "text"
             },
             {
               "key": "username",
-              "value": "operador1",
+              "value": "cliente01",
               "type": "text"
             },
             {
               "key": "password",
-              "value": "1234",
+              "value": "Clave123",
               "type": "text"
             },
             {
@@ -157,12 +167,22 @@
         {
           "listen": "test",
           "script": {
+            "id": "bc2f6971-cd73-4a79-a5d7-fe7451243ce6",
             "exec": [
               "var jsonData = JSON.parse(responseBody);",
               "pm.environment.set(\"token\", jsonData.access_token);"
             ],
-            "type": "text/javascript",
-            "id": "bc2f6971-cd73-4a79-a5d7-fe7451243ce6"
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "id": "0c73568e-d6ee-48d4-b32d-4ffec62392f7",
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript"
           }
         }
       ],
@@ -180,17 +200,17 @@
           "urlencoded": [
             {
               "key": "client_id",
-              "value": "backend-client",
+              "value": "tpi-backend-client",
               "type": "text"
             },
             {
               "key": "username",
-              "value": "operador1",
+              "value": "transportista01",
               "type": "text"
             },
             {
               "key": "password",
-              "value": "1234",
+              "value": "Clave123",
               "type": "text"
             },
             {
@@ -218,7 +238,7 @@
       }
     },
     {
-      "name": "2. Crear Solicitud (MS-Solicitudes)",
+      "name": "4. Crear Solicitud (MS-Solicitudes)",
       "id": "4bcb6800-2fca-417a-ae9f-60a6f0d87b61",
       "request": {
         "method": "POST",
@@ -234,7 +254,12 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"dniCliente\": 20123456,\n    \"idContenedor\": 1,\n    \"idEstado\": 2,\n    \"costoEstimado\": 0,\n    \"tiempoEstimado\": 0\n}"
+          "raw": "{\n  \"dniCliente\": 11223344,\n  \"idContenedor\": 8\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
         },
         "url": {
           "raw": "http://localhost:8080/api/solicitudes/",
@@ -252,17 +277,27 @@
       }
     },
     {
-      "name": "3. Crear Ruta (MS-Geo)",
+      "name": "5. Crear Ruta (MS-Geo)",
       "event": [
         {
           "listen": "test",
           "script": {
+            "id": "5a6cf63c-d0ef-487d-9b70-8dee6a7bcf22",
             "exec": [
               "var jsonData = JSON.parse(responseBody);",
               "pm.environment.set(\"idRutaCreada\", jsonData.idRuta);"
             ],
-            "type": "text/javascript",
-            "id": "5a6cf63c-d0ef-487d-9b70-8dee6a7bcf22"
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "id": "9c6e0b9b-e95d-4b72-b8e4-d55ff12a5b1f",
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript"
           }
         }
       ],
@@ -281,7 +316,12 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"nroSolicitud\": 1,\n    \"cantTramos\": 1,\n    \"cantDepositos\": 0\n}"
+          "raw": "{\n  \"nroSolicitud\": 3,\n  \"cantTramos\": 2,\n  \"cantDepositos\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
         },
         "url": {
           "raw": "http://localhost:8080/api/geolocalizacion/rutas",
@@ -299,11 +339,12 @@
       }
     },
     {
-      "name": "4. Crear Tramo (Calcula OSRM)",
+      "name": "6. Crear Tramo (Calcula OSRM)",
       "event": [
         {
           "listen": "test",
           "script": {
+            "id": "e49c5c78-02d5-46f8-a11c-5ccc14bf29f7",
             "exec": [
               "var jsonData = JSON.parse(responseBody);",
               "pm.environment.set(\"idTramoCreado\", jsonData.idTramo);",
@@ -312,8 +353,17 @@
               "    pm.expect(jsonData.costoAproximado).to.be.above(0);",
               "});"
             ],
-            "type": "text/javascript",
-            "id": "e49c5c78-02d5-46f8-a11c-5ccc14bf29f7"
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "id": "c86293dc-0dec-4da2-bf2e-342d11b4dee5",
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript"
           }
         }
       ],
@@ -332,7 +382,12 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"idRuta\": {{idRutaCreada}},\n    \"origenGeo\": 1,\n    \"destinoGeo\": 2,\n    \"tipoTramo\": 4,\n    \"idEstado\": 3,\n    \"orden\": 1,\n    \"dominioCamion\": \"AJ345KL\"\n}"
+          "raw": "{\n  \"idRuta\": 3,\n  \"origenDepositoId\": 6,     \n  \"destinoGeo\": 5,           \n  \"tipoTramo\": 2,            \n  \"idEstado\": 3,\n  \"orden\": 2,\n  \"dominioCamion\": \"ZZ999ZZ\"\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
         },
         "url": {
           "raw": "http://localhost:8080/api/geolocalizacion/rutas/tramo",
@@ -352,7 +407,7 @@
       }
     },
     {
-      "name": "5. Marcar Inicio",
+      "name": "7. Marcar Inicio",
       "id": "168cf605-087c-402e-a659-36784e678182",
       "request": {
         "method": "PUT",
@@ -368,10 +423,15 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{}"
+          "raw": "{\r\n  \"fechaHoraInicioReal\": \"2025-12-04T08:00:00\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
         },
         "url": {
-          "raw": "http://localhost:8080/api/geolocalizacion/rutas/tramo/{{idTramoCreado}}/marcar-inicio",
+          "raw": "http://localhost:8080/api/geolocalizacion/rutas/tramo/3/marcar-inicio",
           "protocol": "http",
           "host": [
             "localhost"
@@ -382,7 +442,7 @@
             "geolocalizacion",
             "rutas",
             "tramo",
-            "{{idTramoCreado}}",
+            "3",
             "marcar-inicio"
           ]
         },
@@ -390,7 +450,7 @@
       }
     },
     {
-      "name": "6. Marcar Fin (FECHA AUTOMATICA)",
+      "name": "8. Marcar Fin",
       "id": "75ab92e3-dfdd-42bd-a0f5-b18e0f32a354",
       "request": {
         "method": "PUT",
@@ -406,10 +466,15 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{}"
+          "raw": "{\r\n  \"fechaHoraFinReal\": \"2025-12-04T15:30:00\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
         },
         "url": {
-          "raw": "http://localhost:8080/api/geolocalizacion/rutas/tramo/{{idTramoCreado}}/marcar-fin",
+          "raw": "http://localhost:8080/api/geolocalizacion/rutas/tramo/3/marcar-fin",
           "protocol": "http",
           "host": [
             "localhost"
@@ -420,7 +485,7 @@
             "geolocalizacion",
             "rutas",
             "tramo",
-            "{{idTramoCreado}}",
+            "3",
             "marcar-fin"
           ]
         },
@@ -428,23 +493,198 @@
       }
     },
     {
-      "name": "Ver Solicitudes",
+      "name": "9. Ver Solicitudes por Cliente",
       "id": "de3e2075-3aff-4c31-b533-729a13514936",
       "request": {
         "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
         "url": {
-          "raw": ""
+          "raw": "http://localhost:8080/api/solicitudes?dniCliente=11223344",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "solicitudes"
+          ],
+          "query": [
+            {
+              "key": "dniCliente",
+              "value": "11223344"
+            }
+          ]
         }
       }
     },
     {
-      "name": "Estados",
+      "name": "10. Estados",
       "id": "059e15a5-1ff5-44fc-8436-cd1c4ac931ad",
       "request": {
         "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
         "url": {
-          "raw": ""
+          "raw": "http://localhost:8080/api/solicitudes/estados",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "solicitudes",
+            "estados"
+          ]
         }
+      }
+    },
+    {
+      "name": "2. Registrar Nuevo Cliente (Operador)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "id": "e49c5c78-02d5-46f8-a11c-5ccc14bf29f7",
+            "exec": [
+              "var jsonData = JSON.parse(responseBody);",
+              "pm.environment.set(\"idTramoCreado\", jsonData.idTramo);",
+              "// Verifica que OSRM calculó algo",
+              "pm.test(\"Costo Aproximado calculado\", function () {",
+              "    pm.expect(jsonData.costoAproximado).to.be.above(0);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "id": "c86293dc-0dec-4da2-bf2e-342d11b4dee5",
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "id": "e2a72f8a-6581-4438-a031-c4b1ac75f41d",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idRuta\": 3,\n  \"origenDepositoId\": 6,     \n  \"destinoGeo\": 5,           \n  \"tipoTramo\": 2,            \n  \"idEstado\": 3,\n  \"orden\": 2,\n  \"dominioCamion\": \"ZZ999ZZ\"\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/geolocalizacion/rutas/tramo",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "geolocalizacion",
+            "rutas",
+            "tramo"
+          ]
+        },
+        "description": "Crea tramo entre CABA (1) y Córdoba (2). Debe calcular distancia con OSRM y costo con MS-Transporte."
+      }
+    },
+    {
+      "name": "3. Registrar Contenedor (Operador)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "id": "e49c5c78-02d5-46f8-a11c-5ccc14bf29f7",
+            "exec": [
+              "var jsonData = JSON.parse(responseBody);",
+              "pm.environment.set(\"idTramoCreado\", jsonData.idTramo);",
+              "// Verifica que OSRM calculó algo",
+              "pm.test(\"Costo Aproximado calculado\", function () {",
+              "    pm.expect(jsonData.costoAproximado).to.be.above(0);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "id": "c86293dc-0dec-4da2-bf2e-342d11b4dee5",
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "id": "e9ebd6b0-ab46-4247-bedc-5a18362b784d",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idRuta\": 3,\n  \"origenDepositoId\": 6,     \n  \"destinoGeo\": 5,           \n  \"tipoTramo\": 2,            \n  \"idEstado\": 3,\n  \"orden\": 2,\n  \"dominioCamion\": \"ZZ999ZZ\"\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/geolocalizacion/rutas/tramo",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "geolocalizacion",
+            "rutas",
+            "tramo"
+          ]
+        },
+        "description": "Crea tramo entre CABA (1) y Córdoba (2). Debe calcular distancia con OSRM y costo con MS-Transporte."
       }
     }
   ]

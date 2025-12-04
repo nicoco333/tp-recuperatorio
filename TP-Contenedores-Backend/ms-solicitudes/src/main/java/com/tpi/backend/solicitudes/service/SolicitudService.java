@@ -36,16 +36,12 @@ public class SolicitudService {
     }
 
     public List<Solicitud> buscarSolicitudes(Integer numero, Integer dniCliente) {
-        if (numero != null) {
-            return repoSolicitud.findByNroSolicitud(numero);
-        }
-        if (dniCliente != null) {
-            return repoSolicitud.findByCliente_DniCliente(dniCliente);
-        }
+        if (numero != null) return repoSolicitud.findByNroSolicitud(numero);
+        if (dniCliente != null) return repoSolicitud.findByCliente_DniCliente(dniCliente);
         return repoSolicitud.findAll();
     }
 
-    // --- LÓGICA DE ACUMULACIÓN DE DATOS ---
+    // --- AQUÍ ESTÁ EL CAMBIO ---
     public void actualizarProgreso(Integer idSolicitud, 
                                    Double deltaCostoEst, Integer deltaTiempoEst, 
                                    Double deltaCostoReal, Integer deltaTiempoReal, 
@@ -54,7 +50,7 @@ public class SolicitudService {
         Solicitud sol = repoSolicitud.findById(idSolicitud)
                 .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + idSolicitud));
 
-        // 1. Acumular Estimados (Se suman al crear cada tramo)
+        // 1. Acumular Estimados
         if (deltaCostoEst != null) {
             float actual = sol.getCostoEstimado() != null ? sol.getCostoEstimado() : 0f;
             sol.setCostoEstimado(actual + deltaCostoEst.floatValue());
@@ -64,7 +60,7 @@ public class SolicitudService {
             sol.setTiempoEstimado(actual + deltaTiempoEst);
         }
 
-        // 2. Acumular Reales (Se suman al finalizar cada tramo)
+        // 2. Acumular Reales
         if (deltaCostoReal != null) {
             float actual = sol.getCostoReal() != null ? sol.getCostoReal() : 0f;
             sol.setCostoReal(actual + deltaCostoReal.floatValue());
@@ -74,14 +70,28 @@ public class SolicitudService {
             sol.setTiempoReal(actual + deltaTiempoReal);
         }
 
-        // 3. Actualizar Estado (si cambia)
+        // 3. Actualizar Estado y Liberar Contenedor
         if (descripcionEstado != null && !descripcionEstado.isBlank()) {
             Estado nuevoEstado = repoEstado.findAll().stream()
                     .filter(e -> e.getDescripcion().equalsIgnoreCase(descripcionEstado)
                             && e.getContexto() == Contexto.SOLICITUD)
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Estado inválido: " + descripcionEstado));
+            
             sol.setEstado(nuevoEstado);
+
+            // --- LÓGICA DE LIBERACIÓN DE CONTENEDOR ---
+            if ("FINALIZADA".equalsIgnoreCase(descripcionEstado)) {
+                Contenedor c = sol.getContenedor();
+                if (c != null) {
+                    // Volver a estado DISPONIBLE (ID 1)
+                    Estado disponible = repoEstado.findById(1)
+                            .orElseThrow(() -> new IllegalStateException("Estado DISPONIBLE no encontrado"));
+                    c.setEstado(disponible);
+                    repoContenedor.save(c);
+                }
+            }
+            // ------------------------------------------
         }
 
         repoSolicitud.save(sol);
@@ -112,7 +122,7 @@ public class SolicitudService {
         nueva.setCliente(clienteDb);
         nueva.setContenedor(contDb);
         
-        // Inicializamos todo en 0
+        // Inicializar en 0
         nueva.setCostoReal(0f); 
         nueva.setCostoEstimado(0f);
         nueva.setTiempoEstimado(0);
@@ -125,13 +135,12 @@ public class SolicitudService {
         return repoSolicitud.save(nueva);
     }
 
+    // ... (El resto de los métodos modificarSolicitud, obtenerClientes, etc. siguen igual) ...
     public Solicitud modificarSolicitud(Integer id, SolicitudDTO datos) {
         Solicitud actual = repoSolicitud.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No se halló la solicitud " + id));
-
         actualizarCamposSimples(actual, datos);
         actualizarRelaciones(actual, datos);
-
         return repoSolicitud.save(actual);
     }
 
@@ -148,21 +157,16 @@ public class SolicitudService {
     }
 
     public List<Contenedor> filtrarContenedores(String estado, Integer dni) {
-        if (dni != null && estado != null) {
-            return repoContenedor.findByCliente_DniClienteAndEstado_DescripcionIgnoreCase(dni, estado);
-        }
+        if (dni != null && estado != null) return repoContenedor.findByCliente_DniClienteAndEstado_DescripcionIgnoreCase(dni, estado);
         if (dni != null) return repoContenedor.findByCliente_DniCliente(dni);
         if (estado != null) return repoContenedor.findByEstado_DescripcionIgnoreCase(estado);
         return repoContenedor.findAll();
     }
 
     public EstadoDTO consultarEstadoContenedor(Integer id) {
-        Contenedor c = repoContenedor.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Contenedor no hallado"));
+        Contenedor c = repoContenedor.findById(id).orElseThrow(() -> new EntityNotFoundException("Contenedor no hallado"));
         Estado e = c.getEstado();
-        if (e == null || e.getContexto() != Contexto.CONTENEDOR) {
-            throw new IllegalStateException("Estado inválido o no asignado");
-        }
+        if (e == null || e.getContexto() != Contexto.CONTENEDOR) throw new IllegalStateException("Estado inválido");
         EstadoDTO dto = new EstadoDTO();
         dto.setIdEstado(e.getIdEstado());
         dto.setContexto(e.getContexto().name());
@@ -177,46 +181,28 @@ public class SolicitudService {
         return repoContenedor.save(nuevo);
     }
 
-    public List<Estado> obtenerEstados() {
-        return repoEstado.findAll();
-    }
+    public List<Estado> obtenerEstados() { return repoEstado.findAll(); }
+    public Estado altaEstado(Estado e) { return repoEstado.save(e); }
 
-    public Estado altaEstado(Estado e) {
-        return repoEstado.save(e);
-    }
-
-    // Este método queda como opción manual, pero ahora la lógica principal es automática en los tramos
     public TarifaSolicitudDTO cotizarSolicitud(Integer idSolicitud) {
-        Solicitud sol = repoSolicitud.findById(idSolicitud)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud inexistente"));
-        
-        // Retornamos lo que ya tiene calculado la solicitud
+        Solicitud sol = repoSolicitud.findById(idSolicitud).orElseThrow(() -> new EntityNotFoundException("Solicitud inexistente"));
         TarifaSolicitudDTO cotizacion = new TarifaSolicitudDTO();
         cotizacion.setNroSolicitud(idSolicitud);
         cotizacion.setCostoReal((double) (sol.getCostoReal() != null ? sol.getCostoReal() : 0));
-        
-        // (Podrías dejar la lógica vieja aquí si quieres recalcular todo de cero, 
-        // pero chocaría con la acumulación progresiva de tramos).
         return cotizacion;
     }
 
     private void validarDatosMinimos(Solicitud s) {
-        if (s.getCliente() == null || s.getCliente().getDniCliente() == null) 
-            throw new IllegalArgumentException("Falta cliente");
-        if (s.getContenedor() == null || s.getContenedor().getIdContenedor() == null) 
-            throw new IllegalArgumentException("Falta contenedor");
+        if (s.getCliente() == null || s.getCliente().getDniCliente() == null) throw new IllegalArgumentException("Falta cliente");
+        if (s.getContenedor() == null || s.getContenedor().getIdContenedor() == null) throw new IllegalArgumentException("Falta contenedor");
     }
 
     private void validarPropiedadContenedor(Contenedor c, Integer dni) {
-        if (c.getCliente() == null || !Objects.equals(c.getCliente().getDniCliente(), dni)) {
-            throw new IllegalArgumentException("Contenedor no pertenece al cliente");
-        }
+        if (c.getCliente() == null || !Objects.equals(c.getCliente().getDniCliente(), dni)) throw new IllegalArgumentException("Contenedor no pertenece al cliente");
     }
 
     private void validarDisponibilidadContenedor(Integer id) {
-        if (repoSolicitud.existsByContenedor_IdContenedorAndEstado_DescripcionIn(id, List.of("ACTIVA", "ACT", "EN CURSO"))) {
-            throw new IllegalArgumentException("Contenedor ya tiene solicitud activa");
-        }
+        if (repoSolicitud.existsByContenedor_IdContenedorAndEstado_DescripcionIn(id, List.of("ACTIVA", "ACT", "EN CURSO"))) throw new IllegalArgumentException("Contenedor ya tiene solicitud activa");
     }
 
     private void actualizarCamposSimples(Solicitud s, SolicitudDTO dto) {
@@ -227,15 +213,9 @@ public class SolicitudService {
     }
 
     private void actualizarRelaciones(Solicitud s, SolicitudDTO dto) {
-        if (dto.getDniCliente() != null) {
-            s.setCliente(repoCliente.findById(dto.getDniCliente()).orElseThrow());
-        }
-        if (dto.getIdContenedor() != null) {
-            s.setContenedor(repoContenedor.findById(dto.getIdContenedor()).orElseThrow());
-        }
-        if (dto.getIdEstado() != null) {
-            s.setEstado(repoEstado.findById(dto.getIdEstado()).orElseThrow());
-        }
+        if (dto.getDniCliente() != null) s.setCliente(repoCliente.findById(dto.getDniCliente()).orElseThrow());
+        if (dto.getIdContenedor() != null) s.setContenedor(repoContenedor.findById(dto.getIdContenedor()).orElseThrow());
+        if (dto.getIdEstado() != null) s.setEstado(repoEstado.findById(dto.getIdEstado()).orElseThrow());
     }
 
     private void validarDimensiones(Contenedor c) {
@@ -244,15 +224,12 @@ public class SolicitudService {
     }
 
     private void vincularCliente(Contenedor c) {
-        if (c.getCliente() == null || c.getCliente().getDniCliente() == null) 
-            throw new IllegalArgumentException("Cliente obligatorio");
+        if (c.getCliente() == null || c.getCliente().getDniCliente() == null) throw new IllegalArgumentException("Cliente obligatorio");
         Integer dni = c.getCliente().getDniCliente();
         c.setCliente(repoCliente.findById(dni).orElseThrow(() -> new EntityNotFoundException("Cliente no existe")));
     }
 
     private void vincularEstado(Contenedor c) {
-        if (c.getEstado() != null && c.getEstado().getIdEstado() != null) {
-            c.setEstado(repoEstado.findById(c.getEstado().getIdEstado()).orElseThrow());
-        }
+        if (c.getEstado() != null && c.getEstado().getIdEstado() != null) c.setEstado(repoEstado.findById(c.getEstado().getIdEstado()).orElseThrow());
     }
 }

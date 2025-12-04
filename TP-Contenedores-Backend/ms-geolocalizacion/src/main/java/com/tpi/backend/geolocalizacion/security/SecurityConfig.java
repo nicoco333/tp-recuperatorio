@@ -20,9 +20,9 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable) // Desactivar CSRF para APIs
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/**").hasRole("OPERADOR")
-                .requestMatchers(HttpMethod.PUT, "/rutas/tramo/*/asignar-unidad").hasAnyRole("OPERADOR", "ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/rutas/tramo/*/marcar-inicio").hasAnyRole("OPERADOR", "TRANSPORTISTA")
-                .requestMatchers(HttpMethod.PUT, "/rutas/tramo/*/marcar-fin").hasAnyRole("OPERADOR", "TRANSPORTISTA")
+                .requestMatchers(HttpMethod.PUT, "/rutas/tramo/*/asignar-unidad").hasAnyRole("OPERADOR")
+                .requestMatchers(HttpMethod.PUT, "/rutas/tramo/*/marcar-inicio").hasAnyRole("TRANSPORTISTA")
+                .requestMatchers(HttpMethod.PUT, "/rutas/tramo/*/marcar-fin").hasAnyRole("TRANSPORTISTA")
                 .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("OPERADOR", "TRANSPORTISTA", "CLIENTE")
                 .anyRequest().authenticated()
             )
